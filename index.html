@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyderabad Location Search</title>
+    <link rel="stylesheet" href="location-search.css">
+    <!-- Leaflet CSS for OpenStreetMap -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Hyderabad Location Search</h1>
+        <p class="subtitle">Search for locations in Hyderabad and get exact coordinates and ranges</p>
+        
+        <div class="search-container">
+            <div class="search-box-wrapper">
+                <input 
+                    type="text" 
+                    id="location-search" 
+                    class="search-input"
+                    placeholder="Search any location in Hyderabad (e.g., Road No. 5, Hitech City, Banjara Hills...)"
+                    autocomplete="off"
+                />
+                <span class="search-icon">🔍</span>
+            </div>
+            <div id="suggestions" class="suggestions-container"></div>
+        </div>
+
+        <div class="content-layout">
+            <div class="info-column">
+                <div class="history-section">
+                    <div class="history-header">
+                        <h2>📊 Search History / Previous Searches</h2>
+                        <button id="toggle-history" class="toggle-btn">Show History</button>
+                    </div>
+                    <div id="history-container" class="history-container" style="display: none;">
+                        <div id="history-list" class="history-list">
+                            <p class="loading">Loading search history...</p>
+                        </div>
+                        <div class="history-actions">
+                            <button id="clear-history" class="clear-btn">Clear All History</button>
+                            <button id="refresh-history" class="refresh-btn">Refresh</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="result" class="result-container" style="display: none;">
+                    <h2>📍 Selected Location Details</h2>
+                    <div class="info-card">
+                        <div class="info-item">
+                            <label>Location Name:</label>
+                            <span id="location-name">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Full Address:</label>
+                            <span id="address-display">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Area:</label>
+                            <span id="area-display">-</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Pincode:</label>
+                            <span id="pincode-display">-</span>
+                        </div>
+                        
+                        <div class="coordinates-box">
+                            <strong>📍 Exact Coordinates:</strong>
+                            <code id="coordinates">0, 0</code>
+                        </div>
+                        
+                        <div class="coordinates-box" style="margin-top: 15px; border-color: #4caf50;">
+                            <strong>📊 Latitude Range:</strong>
+                            <div class="range-info">
+                                <span>Min: <code id="lat-min">0</code></span>
+                                <span>Max: <code id="lat-max">0</code></span>
+                                <span>Center: <code id="lat-center">0</code></span>
+                            </div>
+                        </div>
+                        
+                        <div class="coordinates-box" style="margin-top: 15px; border-color: #2196f3;">
+                            <strong>📊 Longitude Range:</strong>
+                            <div class="range-info">
+                                <span>Min: <code id="lng-min">0</code></span>
+                                <span>Max: <code id="lng-max">0</code></span>
+                                <span>Center: <code id="lng-center">0</code></span>
+                            </div>
+                        </div>
+
+                        <div class="route-controls">
+                            <button id="set-start-btn" class="route-btn route-btn-start">Set as Location A (Start)</button>
+                            <button id="set-end-btn" class="route-btn route-btn-end">Set as Location B (Destination)</button>
+                        </div>
+                        
+                        <div class="single-location-controls" style="margin-top: 15px;">
+                            <button id="view-google-maps-btn" class="view-google-maps-btn" type="button">
+                                🗺️ View on Google Maps
+                            </button>
+                            <p class="single-location-hint" style="margin-top: 8px; font-size: 12px; color: #666;">
+                                Share this link to let others see the location and navigate to it
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="route-section" class="route-section" style="display: none;">
+                    <h2>🛣️ Route: Location A → Location B</h2>
+                    <div class="route-card">
+                        <div class="route-row">
+                            <div class="route-point route-a">
+                                <div class="route-label">Location A (Start)</div>
+                                <div class="route-name" id="route-a-name">-</div>
+                                <div class="route-coords" id="route-a-coords">-</div>
+                            </div>
+                            <div class="route-point route-b">
+                                <div class="route-label">Location B (Destination)</div>
+                                <div class="route-name" id="route-b-name">-</div>
+                                <div class="route-coords" id="route-b-coords">-</div>
+                            </div>
+                        </div>
+                        <div class="route-summary">
+                            <div class="route-distance-label">Distance (straight line):</div>
+                            <div class="route-distance-value" id="route-distance">-</div>
+                        </div>
+                    </div>
+                    <p class="route-note">
+                        When both Location A and Location B are set, the map on the right will switch to
+                        OpenStreetMap directions view and show the route with both points pinned.
+                    </p>
+                </div>
+
+                <div class="instructions">
+                    <h3>How it works:</h3>
+                    <ol>
+                        <li>Start typing any location in Hyderabad (e.g., "Road No. 5", "Hitech City", "Restaurant near Banjara Hills")</li>
+                        <li>Get real-time suggestions from OpenStreetMap showing all matching places in Hyderabad</li>
+                        <li>Select a location from the suggestions to view its exact coordinates and ranges</li>
+                        <li>Use the buttons to set the selected location as <strong>Location A (Start)</strong> or <strong>Location B (Destination)</strong></li>
+                        <li>When both A and B are set, the distance is shown on the left and the route is displayed on the OpenStreetMap view on the right</li>
+                    </ol>
+                    <p style="margin-top: 10px; font-size: 12px; color: #666; line-height: 1.6;">
+                        💡 <strong>Tip:</strong> Search for any place - roads, buildings, landmarks, areas. All results are from OpenStreetMap database covering entire Hyderabad! The system searches real-time, not just 15 fixed locations.
+                    </p>
+                </div>
+            </div>
+
+            <div class="map-column">
+                <h2 class="map-title">🗺️ Map View (OpenStreetMap)</h2>
+                <div id="map-error" class="map-error" style="display: none;">
+                    <p>⚠️ Map is taking time to load. <a id="map-link" href="#" target="_blank">Open in new tab</a></p>
+                </div>
+                <!-- Leaflet Map Container (for routing) -->
+                <div id="leaflet-map" class="map-container" style="display: none;"></div>
+                <!-- iframe Map Container (fallback for simple location display) -->
+                <iframe
+                    id="map-frame"
+                    class="map-container"
+                    frameborder="0"
+                    scrolling="no"
+                    marginheight="0"
+                    marginwidth="0"
+                    loading="lazy"
+                    allowfullscreen
+                    referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+                
+                <!-- Directions Button (shows when A & B are set) -->
+                <div id="directions-container" class="directions-container" style="display: none;">
+                    <button id="start-directions-btn" class="start-directions-btn">
+                        🚗 Start Directions (Google Maps)
+                    </button>
+                    <button id="openstreetmap-directions-btn" class="openstreetmap-directions-btn">
+                        🗺️ Show Directions (OpenStreetMap)
+                    </button>
+                    <button id="view-route-btn" class="view-route-btn">
+                        🗺️ View Route
+                    </button>
+                    <p class="directions-hint">
+                        Click "Start Directions" to open Google Maps navigation, or "Show Directions" to open OpenStreetMap directions in a new tab
+                    </p>
+                </div>
+                
+                <!-- Navigation Directions Panel (shows turn-by-turn directions) -->
+                <div id="navigation-panel" class="navigation-panel" style="display: none;">
+                    <h3 class="navigation-title">🧭 Turn-by-Turn Directions</h3>
+                    
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <div class="progress-info">
+                            <span id="progress-text">0 km / 0 km</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>Start</span>
+                            <span id="progress-current-step">Click "Start Navigation" to begin</span>
+                            <span>Destination</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Directions List -->
+                    <div id="directions-list" class="directions-list">
+                        <div class="directions-loading">Loading directions...</div>
+                    </div>
+                    
+                    <!-- Navigation Controls -->
+                    <div class="navigation-controls">
+                        <button id="start-navigation-btn" class="nav-btn nav-btn-start">
+                            ▶️ Start Navigation
+                        </button>
+                        <button id="next-step-btn" class="nav-btn nav-btn-next" style="display: none;">
+                            ➡️ Next Step
+                        </button>
+                        <button id="reset-navigation-btn" class="nav-btn nav-btn-reset" style="display: none;">
+                            🔄 Reset Progress
+                        </button>
+                    </div>
+                </div>
+                
+                <p class="map-hint">
+                    When you select a location, it will be pinned on this map using OpenStreetMap tiles
+                    (<a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">openstreetmap.org</a>).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration (must load first) -->
+    <script src="config.js"></script>
+    <!-- Leaflet JS for OpenStreetMap -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="location-search.js"></script>
+</body>
+</html>
