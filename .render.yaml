@@ -1,0 +1,13 @@
+# Render Configuration File
+# This file makes deployment easier - Render will auto-detect these settings
+
+services:
+  - type: web
+    name: hyderabad-location-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /api/locations

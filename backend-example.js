@@ -7,10 +7,21 @@ const path = require('path');
 const cors = require('cors');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use Render's PORT or default to 3000
 
 // Middleware
-app.use(cors());
+// CORS configuration - allow GitHub Pages and localhost
+app.use(cors({
+    origin: [
+        'http://localhost:8000',
+        'http://localhost:3000',
+        'https://*.github.io',  // All GitHub Pages domains
+        /^https:\/\/.*\.github\.io$/,  // Regex for GitHub Pages
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(express.static(__dirname)); // Serve static files (HTML, CSS, JS)
 

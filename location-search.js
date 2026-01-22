@@ -1768,7 +1768,8 @@ function getAllLocations() {
 }
 
 // Search History Functions
-async function saveToSearchHistory(location) {
+// Save search history - uses only localStorage (no POST requests)
+function saveToSearchHistory(location) {
     try {
         const searchEntry = {
             id: Date.now(), // Unique ID using timestamp
@@ -1785,31 +1786,8 @@ async function saveToSearchHistory(location) {
             searchDate: new Date().toLocaleString()
         };
         
-        // Try to save via API (if backend is running)
-        // Use GET first to check if backend exists, avoid POST errors
-        try {
-            // Check if backend exists first (optional - we'll just use localStorage if no backend)
-            // Skip API call entirely if no backend - just use localStorage
-            saveToLocalStorage(searchEntry);
-            
-            // Optional: Try to save to backend (only if you have a backend server)
-            // Uncomment below if you have a backend:
-            /*
-            const response = await fetch('/api/history', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(searchEntry)
-            });
-            
-            if (response.ok) {
-                console.log('Search saved to backend');
-                loadSearchHistory();
-            }
-            */
-        } catch (error) {
-            // Silently use localStorage - no errors shown
-            saveToLocalStorage(searchEntry);
-        }
+        // Save to localStorage only (no API calls, no POST requests)
+        saveToLocalStorage(searchEntry);
     } catch (error) {
         console.error('Error saving search history:', error);
     }
@@ -1831,7 +1809,9 @@ async function loadSearchHistory() {
     try {
         // Try to load from backend first
         try {
-            const response = await fetch('/api/history');
+            // Use config for API URL (works with GitHub Pages + Render backend)
+            const apiUrl = window.getApiUrl ? window.getApiUrl('api/history') : '/api/history';
+            const response = await fetch(apiUrl);
             if (response.ok) {
                 const data = await response.json();
                 displayHistory(data.searches || data);
@@ -1919,25 +1899,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Clear history button
+    // Clear history button - uses only localStorage (no DELETE requests)
     const clearBtn = document.getElementById('clear-history');
     if (clearBtn) {
-        clearBtn.addEventListener('click', async function() {
+        clearBtn.addEventListener('click', function() {
             if (confirm('Are you sure you want to clear all search history?')) {
-                try {
-                    // Try backend first
-                    const response = await fetch('/api/history', { method: 'DELETE' });
-                    if (response.ok) {
-                        loadSearchHistory();
-                    } else {
-                        // Clear localStorage
-                        localStorage.removeItem('searchHistory');
-                        loadSearchHistory();
-                    }
-                } catch (error) {
-                    localStorage.removeItem('searchHistory');
-                    loadSearchHistory();
-                }
+                // Clear localStorage only (no API calls, no DELETE requests)
+                localStorage.removeItem('searchHistory');
+                loadSearchHistory();
             }
         });
     }
