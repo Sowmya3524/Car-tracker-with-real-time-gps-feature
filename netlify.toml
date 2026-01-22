@@ -1,0 +1,32 @@
+# Netlify Configuration File
+# This file configures how Netlify deploys your site
+
+[build]
+  # No build command needed for static HTML/CSS/JS sites
+  # Netlify will serve files directly
+  
+  # Publish directory (where your HTML files are)
+  publish = "."
+
+# Redirect rules (optional)
+# All requests to the root will serve location-search.html
+[[redirects]]
+  from = "/"
+  to = "/location-search.html"
+  status = 200
+
+# Headers for security and CORS (optional but recommended)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Enable pretty URLs (optional)
+# This allows /location-search instead of /location-search.html
+[[redirects]]
+  from = "/location-search"
+  to = "/location-search.html"
+  status = 200

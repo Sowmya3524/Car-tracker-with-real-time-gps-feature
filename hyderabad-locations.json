@@ -1,0 +1,259 @@
+{
+  "locations": [
+    {
+      "id": 1,
+      "name": "Hitech City",
+      "address": "Hitech City, Hyderabad, Telangana",
+      "latitude": 17.4486,
+      "longitude": 78.3908,
+      "latitudeRange": {
+        "min": 17.4400,
+        "max": 17.4600
+      },
+      "longitudeRange": {
+        "min": 78.3800,
+        "max": 78.4000
+      },
+      "area": "Madhapur",
+      "pincode": "500081"
+    },
+    {
+      "id": 2,
+      "name": "Banjara Hills",
+      "address": "Banjara Hills, Hyderabad, Telangana",
+      "latitude": 17.4239,
+      "longitude": 78.4481,
+      "latitudeRange": {
+        "min": 17.4150,
+        "max": 17.4350
+      },
+      "longitudeRange": {
+        "min": 78.4400,
+        "max": 78.4600
+      },
+      "area": "Banjara Hills",
+      "pincode": "500034"
+    },
+    {
+      "id": 3,
+      "name": "Secunderabad",
+      "address": "Secunderabad, Hyderabad, Telangana",
+      "latitude": 17.4399,
+      "longitude": 78.4983,
+      "latitudeRange": {
+        "min": 17.4300,
+        "max": 17.4500
+      },
+      "longitudeRange": {
+        "min": 78.4900,
+        "max": 78.5100
+      },
+      "area": "Secunderabad",
+      "pincode": "500003"
+    },
+    {
+      "id": 4,
+      "name": "Gachibowli",
+      "address": "Gachibowli, Hyderabad, Telangana",
+      "latitude": 17.4227,
+      "longitude": 78.3498,
+      "latitudeRange": {
+        "min": 17.4150,
+        "max": 17.4350
+      },
+      "longitudeRange": {
+        "min": 78.3400,
+        "max": 78.3600
+      },
+      "area": "Gachibowli",
+      "pincode": "500032"
+    },
+    {
+      "id": 5,
+      "name": "Kondapur",
+      "address": "Kondapur, Hyderabad, Telangana",
+      "latitude": 17.4765,
+      "longitude": 78.3921,
+      "latitudeRange": {
+        "min": 17.4700,
+        "max": 17.4850
+      },
+      "longitudeRange": {
+        "min": 78.3850,
+        "max": 78.4000
+      },
+      "area": "Kondapur",
+      "pincode": "500084"
+    },
+    {
+      "id": 6,
+      "name": "Jubilee Hills",
+      "address": "Jubilee Hills, Hyderabad, Telangana",
+      "latitude": 17.4325,
+      "longitude": 78.4071,
+      "latitudeRange": {
+        "min": 17.4250,
+        "max": 17.4450
+      },
+      "longitudeRange": {
+        "min": 78.4000,
+        "max": 78.4200
+      },
+      "area": "Jubilee Hills",
+      "pincode": "500033"
+    },
+    {
+      "id": 7,
+      "name": "Mehdipatnam",
+      "address": "Mehdipatnam, Hyderabad, Telangana",
+      "latitude": 17.3836,
+      "longitude": 78.4526,
+      "latitudeRange": {
+        "min": 17.3750,
+        "max": 17.3950
+      },
+      "longitudeRange": {
+        "min": 78.4450,
+        "max": 78.4650
+      },
+      "area": "Mehdipatnam",
+      "pincode": "500028"
+    },
+    {
+      "id": 8,
+      "name": "Ameerpet",
+      "address": "Ameerpet, Hyderabad, Telangana",
+      "latitude": 17.4342,
+      "longitude": 78.4428,
+      "latitudeRange": {
+        "min": 17.4250,
+        "max": 17.4450
+      },
+      "longitudeRange": {
+        "min": 78.4350,
+        "max": 78.4550
+      },
+      "area": "Ameerpet",
+      "pincode": "500016"
+    },
+    {
+      "id": 9,
+      "name": "Habsiguda",
+      "address": "Habsiguda, Hyderabad, Telangana",
+      "latitude": 17.4090,
+      "longitude": 78.5181,
+      "latitudeRange": {
+        "min": 17.4000,
+        "max": 17.4200
+      },
+      "longitudeRange": {
+        "min": 78.5100,
+        "max": 78.5300
+      },
+      "area": "Habsiguda",
+      "pincode": "500007"
+    },
+    {
+      "id": 10,
+      "name": "Kukatpally",
+      "address": "Kukatpally, Hyderabad, Telangana",
+      "latitude": 17.4849,
+      "longitude": 78.4004,
+      "latitudeRange": {
+        "min": 17.4750,
+        "max": 17.4950
+      },
+      "longitudeRange": {
+        "min": 78.3900,
+        "max": 78.4100
+      },
+      "area": "Kukatpally",
+      "pincode": "500072"
+    },
+    {
+      "id": 11,
+      "name": "Boduppal",
+      "address": "Boduppal, Hyderabad, Telangana",
+      "latitude": 17.5132,
+      "longitude": 78.5558,
+      "latitudeRange": {
+        "min": 17.5050,
+        "max": 17.5250
+      },
+      "longitudeRange": {
+        "min": 78.5500,
+        "max": 78.5650
+      },
+      "area": "Boduppal",
+      "pincode": "500092"
+    },
+    {
+      "id": 12,
+      "name": "Miyapur",
+      "address": "Miyapur, Hyderabad, Telangana",
+      "latitude": 17.4972,
+      "longitude": 78.3502,
+      "latitudeRange": {
+        "min": 17.4900,
+        "max": 17.5100
+      },
+      "longitudeRange": {
+        "min": 78.3400,
+        "max": 78.3650
+      },
+      "area": "Miyapur",
+      "pincode": "500049"
+    },
+    {
+      "id": 13,
+      "name": "Shamshabad",
+      "address": "Shamshabad, Hyderabad, Telangana",
+      "latitude": 17.2406,
+      "longitude": 78.4292,
+      "latitudeRange": {
+        "min": 17.2300,
+        "max": 17.2550
+      },
+      "longitudeRange": {
+        "min": 78.4200,
+        "max": 78.4400
+      },
+      "area": "Shamshabad",
+      "pincode": "501218"
+    },
+    {
+      "id": 14,
+      "name": "Malakpet",
+      "address": "Malakpet, Hyderabad, Telangana",
+      "latitude": 17.3758,
+      "longitude": 78.5170,
+      "latitudeRange": {
+        "min": 17.3650,
+        "max": 17.3850
+      },
+      "longitudeRange": {
+        "min": 78.5100,
+        "max": 78.5250
+      },
+      "area": "Malakpet",
+      "pincode": "500036"
+    },
+    {
+      "id": 15,
+      "name": "Begumpet",
+      "address": "Begumpet, Hyderabad, Telangana",
+      "latitude": 17.4449,
+      "longitude": 78.4647,
+      "latitudeRange": {
+        "min": 17.4350,
+        "max": 17.4550
+      },
+      "longitudeRange": {
+        "min": 78.4550,
+        "max": 78.4750
+      },
+      "area": "Begumpet",
+      "pincode": "500016"
+    }
+  ]
+}

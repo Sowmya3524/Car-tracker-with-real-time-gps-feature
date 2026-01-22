@@ -1,0 +1,163 @@
+\documentclass[a4paper,8pt]{article}
+\usepackage[margin=0.2in, landscape]{geometry}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning, calc}
+
+\begin{document}
+
+\begin{center}
+{\normalsize\bfseries Test Drive Vehicle Tracking System - Process Flow}\\[0.2cm]
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}[
+    node distance=0.5cm and 2cm,
+    process/.style={rectangle, draw, minimum width=1.8cm, minimum height=0.35cm, text centered, text width=1.8cm, font=\tiny},
+    decision/.style={diamond, draw, minimum width=0.8cm, minimum height=0.4cm, text centered, text width=1.1cm, font=\tiny, aspect=2.5},
+    startstop/.style={rectangle, rounded corners, draw, minimum width=1.5cm, minimum height=0.3cm, text centered, font=\tiny\bfseries},
+    arrow/.style={->, >=stealth, thin}
+]
+
+% ===== MAIN FLOW (CENTER) =====
+\node (start) [startstop] {START};
+\node (driver_app) [process, below=0.4cm of start] {Driver has Android App with GPS};
+\node (gps_active) [process, below=0.4cm of driver_app] {Driver Location Sent to CRE Dashboard};
+\node (customer) [process, below=0.4cm of gps_active] {Customer Requests Test Drive};
+\node (cre_receives) [process, below=0.4cm of customer] {CRE Receives Request};
+\node (enter_details) [process, below=0.4cm of cre_receives] {CRE Enters Details};
+\node (cust_type) [decision, below=0.5cm of enter_details] {Customer Type?};
+
+% ===== HOT/COLD BRANCHES =====
+\node (hot) [process, right=1.5cm of cust_type] {HOT: Wants ASAP};
+\node (cold) [process, left=1.5cm of cust_type] {COLD: Flexible};
+
+% ===== MODEL SELECTION =====
+\node (select_model) [process, below=0.8cm of cust_type] {Select Car Model};
+\node (model_check) [decision, below=0.5cm of select_model] {Model Available?};
+
+% ===== MODEL NOT AVAILABLE (FAR LEFT) =====
+\node (model_busy) [process, left=3.5cm of model_check] {Model Busy};
+\node (remove_model) [process, below=0.4cm of model_busy] {Remove from List};
+\node (suggest_alt) [process, below=0.4cm of remove_model] {Suggest Alternatives};
+\node (cust_choose) [decision, below=0.5cm of suggest_alt] {Accepts?};
+\node (no_drive) [startstop, below=0.5cm of cust_choose] {END: No Drive};
+
+% ===== MODEL AVAILABLE (FAR RIGHT) =====
+\node (model_avail) [process, right=3.5cm of model_check] {Model Available};
+\node (display_model) [process, below=0.4cm of model_avail] {Model Shown};
+
+% ===== LOCATION FLOW (CENTER) =====
+\node (pin_location) [process, below=1cm of model_check] {CRE Pins Customer Location};
+\node (get_coords) [process, below=0.4cm of pin_location] {Generate GPS Coords};
+\node (view_drivers) [process, below=0.4cm of get_coords, text width=2cm] {Driver Locations in Dashboard};
+\node (find_drivers) [process, below=0.4cm of view_drivers] {Find Nearest Driver};
+\node (assign_location) [process, below=0.4cm of find_drivers] {CRE Assigns Location};
+\node (drivers_check) [decision, below=0.5cm of assign_location] {Driver Available?};
+
+% ===== DRIVER NOT AVAILABLE (LEFT) =====
+\node (no_drivers) [process, left=3.5cm of drivers_check] {Driver on Test Drive};
+\node (inform_customer) [process, below=0.4cm of no_drivers] {CRE Calls Customer};
+\node (delay_msg) [process, below=0.4cm of inform_customer, text width=2.2cm] {Model Takes Time, Driver Busy};
+\node (wait_driver) [process, below=0.4cm of delay_msg] {Wait for Driver};
+
+% ===== DRIVERS FOUND (RIGHT) =====
+\node (drivers_found) [process, right=3.5cm of drivers_check] {Driver Found};
+\node (check_avail) [decision, below=0.5cm of drivers_found] {Free?};
+\node (driver_free) [process, right=1.5cm of check_avail] {FREE};
+\node (driver_busy) [process, left=1.5cm of check_avail] {BUSY};
+\node (auto_assign) [process, below=0.4cm of driver_free] {Auto-Assign Lead};
+\node (check_next) [process, below=0.4cm of driver_busy] {Check Next};
+
+% ===== AFTER ASSIGN (CENTER) =====
+\node (send_notification) [process, below=1.2cm of drivers_check] {Driver Gets Notification};
+\node (share_location) [process, below=0.4cm of send_notification] {Share Customer Location};
+\node (driver_accept) [decision, below=0.5cm of share_location] {Accepts?};
+
+% ===== DRIVER REJECTS (LEFT) =====
+\node (driver_reject) [process, left=3.5cm of driver_accept] {Driver Rejects};
+\node (assign_next) [process, below=0.4cm of driver_reject] {Try Next Driver};
+
+% ===== DRIVER ACCEPTS (RIGHT) =====
+\node (location_received) [process, right=3.5cm of driver_accept] {Driver Gets Location};
+\node (driver_sees_map) [process, below=0.4cm of location_received] {Sees Customer on Map};
+\node (navigate) [process, below=0.4cm of driver_sees_map] {Navigate to Customer};
+\node (reach_customer) [process, below=0.4cm of navigate] {Reach Customer};
+\node (test_drive) [process, below=0.4cm of reach_customer] {Give Test Drive};
+\node (complete) [startstop, below=0.4cm of test_drive] {END: Complete};
+
+% ========== ARROWS ==========
+
+% Main Flow
+\draw [arrow] (start) -- (driver_app);
+\draw [arrow] (driver_app) -- (gps_active);
+\draw [arrow] (gps_active) -- (customer);
+\draw [arrow] (customer) -- (cre_receives);
+\draw [arrow] (cre_receives) -- (enter_details);
+\draw [arrow] (enter_details) -- (cust_type);
+
+% Hot/Cold
+\draw [arrow] (cust_type) -- node[above, font=\tiny] {Hot} (hot);
+\draw [arrow] (cust_type) -- node[above, font=\tiny] {Cold} (cold);
+\draw [arrow] (hot.south) |- (select_model.east);
+\draw [arrow] (cold.south) |- (select_model.west);
+
+% Model Check
+\draw [arrow] (select_model) -- (model_check);
+\draw [arrow] (model_check) -- node[above, font=\tiny] {No} (model_busy);
+\draw [arrow] (model_busy) -- (remove_model);
+\draw [arrow] (remove_model) -- (suggest_alt);
+\draw [arrow] (suggest_alt) -- (cust_choose);
+\draw [arrow] (cust_choose) -- node[left, font=\tiny] {No} (no_drive);
+\draw [arrow] (cust_choose.west) -- ++(-1,0) |- node[pos=0.15, left, font=\tiny] {Yes} (pin_location.west);
+
+% Model Available
+\draw [arrow] (model_check) -- node[above, font=\tiny] {Yes} (model_avail);
+\draw [arrow] (model_avail) -- (display_model);
+\draw [arrow] (display_model.south) -- ++(0,-0.3) -| (pin_location.east);
+
+% Location Flow
+\draw [arrow] (pin_location) -- (get_coords);
+\draw [arrow] (get_coords) -- (view_drivers);
+\draw [arrow] (view_drivers) -- (find_drivers);
+\draw [arrow] (find_drivers) -- (assign_location);
+\draw [arrow] (assign_location) -- (drivers_check);
+
+% Driver Not Available
+\draw [arrow] (drivers_check) -- node[above, font=\tiny] {No} (no_drivers);
+\draw [arrow] (no_drivers) -- (inform_customer);
+\draw [arrow] (inform_customer) -- (delay_msg);
+\draw [arrow] (delay_msg) -- (wait_driver);
+\draw [arrow] (wait_driver.west) -- ++(-0.5,0) |- (find_drivers.west);
+
+% Drivers Found
+\draw [arrow] (drivers_check) -- node[above, font=\tiny] {Yes} (drivers_found);
+\draw [arrow] (drivers_found) -- (check_avail);
+\draw [arrow] (check_avail) -- node[above, font=\tiny] {Yes} (driver_free);
+\draw [arrow] (check_avail) -- node[above, font=\tiny] {No} (driver_busy);
+\draw [arrow] (driver_free) -- (auto_assign);
+\draw [arrow] (driver_busy) -- (check_next);
+\draw [arrow] (auto_assign.south) -- ++(0,-0.3) -| (send_notification.east);
+\draw [arrow] (check_next.north) -- ++(0,0.3) -| (check_avail.north);
+
+% After Assignment
+\draw [arrow] (drivers_check) -- (send_notification);
+\draw [arrow] (send_notification) -- (share_location);
+\draw [arrow] (share_location) -- (driver_accept);
+
+% Driver Rejects
+\draw [arrow] (driver_accept) -- node[above, font=\tiny] {No} (driver_reject);
+\draw [arrow] (driver_reject) -- (assign_next);
+\draw [arrow] (assign_next.west) -- ++(-0.5,0) |- (send_notification.west);
+
+% Driver Accepts
+\draw [arrow] (driver_accept) -- node[above, font=\tiny] {Yes} (location_received);
+\draw [arrow] (location_received) -- (driver_sees_map);
+\draw [arrow] (driver_sees_map) -- (navigate);
+\draw [arrow] (navigate) -- (reach_customer);
+\draw [arrow] (reach_customer) -- (test_drive);
+\draw [arrow] (test_drive) -- (complete);
+
+\end{tikzpicture}
+\end{center}
+
+\end{document}

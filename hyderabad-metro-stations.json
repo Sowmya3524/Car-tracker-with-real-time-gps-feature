@@ -1,0 +1,336 @@
+{
+  "metroStations": [
+    {
+      "id": "metro_1",
+      "name": "Miyapur Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "Miyapur Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4873,
+      "longitude": 78.3924,
+      "area": "Miyapur",
+      "pincode": "500049"
+    },
+    {
+      "id": "metro_2",
+      "name": "JNTU College Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "JNTU College Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4825,
+      "longitude": 78.3945,
+      "area": "Kukatpally",
+      "pincode": "500085"
+    },
+    {
+      "id": "metro_3",
+      "name": "KPHB Colony Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "KPHB Colony Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4765,
+      "longitude": 78.3921,
+      "area": "KPHB",
+      "pincode": "500072"
+    },
+    {
+      "id": "metro_4",
+      "name": "Kukatpally Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "Kukatpally Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4849,
+      "longitude": 78.4004,
+      "area": "Kukatpally",
+      "pincode": "500072"
+    },
+    {
+      "id": "metro_5",
+      "name": "Ameerpet Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1) & Red Line (Corridor 3)",
+      "address": "Ameerpet Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4342,
+      "longitude": 78.4428,
+      "area": "Ameerpet",
+      "pincode": "500016"
+    },
+    {
+      "id": "metro_6",
+      "name": "MG Bus Station Metro",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1) & Green Line (Corridor 2)",
+      "address": "MG Bus Station Metro, Hyderabad, Telangana",
+      "latitude": 17.3716,
+      "longitude": 78.4750,
+      "area": "Lakdikapul",
+      "pincode": "500004"
+    },
+    {
+      "id": "metro_7",
+      "name": "Secunderabad Metro Station",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Secunderabad Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4399,
+      "longitude": 78.4983,
+      "area": "Secunderabad",
+      "pincode": "500003"
+    },
+    {
+      "id": "metro_8",
+      "name": "Begumpet Metro Station",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Begumpet Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4449,
+      "longitude": 78.4647,
+      "area": "Begumpet",
+      "pincode": "500016"
+    },
+    {
+      "id": "metro_9",
+      "name": "Hitech City Metro Station",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Hitech City Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4486,
+      "longitude": 78.3908,
+      "area": "Hitech City",
+      "pincode": "500081"
+    },
+    {
+      "id": "metro_10",
+      "name": "Nagole Metro Station",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Nagole Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4090,
+      "longitude": 78.5181,
+      "area": "Nagole",
+      "pincode": "500068"
+    },
+    {
+      "id": "metro_11",
+      "name": "LB Nagar Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "LB Nagar Metro Station, Hyderabad, Telangana",
+      "latitude": 17.3510,
+      "longitude": 78.5575,
+      "area": "LB Nagar",
+      "pincode": "500074"
+    },
+    {
+      "id": "metro_12",
+      "name": "Punjagutta Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "Punjagutta Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4285,
+      "longitude": 78.4450,
+      "area": "Punjagutta",
+      "pincode": "500082"
+    },
+    {
+      "id": "metro_13",
+      "name": "Banjara Hills Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "Banjara Hills Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4239,
+      "longitude": 78.4481,
+      "area": "Banjara Hills",
+      "pincode": "500034"
+    },
+    {
+      "id": "metro_14",
+      "name": "Jubilee Hills Check Post Metro",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Jubilee Hills Check Post Metro, Hyderabad, Telangana",
+      "latitude": 17.4325,
+      "longitude": 78.4071,
+      "area": "Jubilee Hills",
+      "pincode": "500033"
+    },
+    {
+      "id": "metro_15",
+      "name": "Road No. 5 Jubilee Hills Metro",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Road No. 5 Jubilee Hills Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4310,
+      "longitude": 78.4100,
+      "area": "Jubilee Hills",
+      "pincode": "500033"
+    },
+    {
+      "id": "metro_16",
+      "name": "Paradise Metro Station",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Paradise Metro Station, Secunderabad, Hyderabad, Telangana",
+      "latitude": 17.4390,
+      "longitude": 78.4910,
+      "area": "Secunderabad",
+      "pincode": "500003"
+    },
+    {
+      "id": "metro_17",
+      "name": "Nampally Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "Nampally Metro Station, Hyderabad, Telangana",
+      "latitude": 17.3880,
+      "longitude": 78.4720,
+      "area": "Nampally",
+      "pincode": "500001"
+    },
+    {
+      "id": "metro_18",
+      "name": "Malakpet Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "Malakpet Metro Station, Hyderabad, Telangana",
+      "latitude": 17.3758,
+      "longitude": 78.5170,
+      "area": "Malakpet",
+      "pincode": "500036"
+    },
+    {
+      "id": "metro_19",
+      "name": "Dilsukhnagar Metro Station",
+      "type": "metro_station",
+      "line": "Blue Line (Corridor 1)",
+      "address": "Dilsukhnagar Metro Station, Hyderabad, Telangana",
+      "latitude": 17.3680,
+      "longitude": 78.5300,
+      "area": "Dilsukhnagar",
+      "pincode": "500060"
+    },
+    {
+      "id": "metro_20",
+      "name": "Uppal Metro Station",
+      "type": "metro_station",
+      "line": "Red Line (Corridor 3)",
+      "address": "Uppal Metro Station, Hyderabad, Telangana",
+      "latitude": 17.4030,
+      "longitude": 78.5480,
+      "area": "Uppal",
+      "pincode": "500039"
+    }
+  ],
+  "metroPillars": [
+    {
+      "id": "pillar_1",
+      "name": "Metro Pillar No. 1",
+      "type": "metro_pillar",
+      "reference": "Near Miyapur Metro Station",
+      "address": "Metro Pillar No. 1, Miyapur, Hyderabad, Telangana",
+      "latitude": 17.4875,
+      "longitude": 78.3925,
+      "area": "Miyapur",
+      "pincode": "500049"
+    },
+    {
+      "id": "pillar_2",
+      "name": "Metro Pillar No. 5",
+      "type": "metro_pillar",
+      "reference": "Road No. 5, Jubilee Hills",
+      "address": "Metro Pillar No. 5, Road No. 5, Jubilee Hills, Hyderabad, Telangana",
+      "latitude": 17.4310,
+      "longitude": 78.4100,
+      "area": "Jubilee Hills",
+      "pincode": "500033"
+    },
+    {
+      "id": "pillar_3",
+      "name": "Metro Pillar No. 10",
+      "type": "metro_pillar",
+      "reference": "Near Ameerpet Metro Station",
+      "address": "Metro Pillar No. 10, Ameerpet, Hyderabad, Telangana",
+      "latitude": 17.4345,
+      "longitude": 78.4430,
+      "area": "Ameerpet",
+      "pincode": "500016"
+    },
+    {
+      "id": "pillar_4",
+      "name": "Metro Pillar No. 15",
+      "type": "metro_pillar",
+      "reference": "Near Hitech City Metro Station",
+      "address": "Metro Pillar No. 15, Hitech City, Hyderabad, Telangana",
+      "latitude": 17.4490,
+      "longitude": 78.3910,
+      "area": "Hitech City",
+      "pincode": "500081"
+    },
+    {
+      "id": "pillar_5",
+      "name": "Metro Pillar No. 20",
+      "type": "metro_pillar",
+      "reference": "Near Secunderabad Metro Station",
+      "address": "Metro Pillar No. 20, Secunderabad, Hyderabad, Telangana",
+      "latitude": 17.4405,
+      "longitude": 78.4985,
+      "area": "Secunderabad",
+      "pincode": "500003"
+    },
+    {
+      "id": "pillar_6",
+      "name": "Metro Pillar No. 25",
+      "type": "metro_pillar",
+      "reference": "Near Begumpet Metro Station",
+      "address": "Metro Pillar No. 25, Begumpet, Hyderabad, Telangana",
+      "latitude": 17.4455,
+      "longitude": 78.4650,
+      "area": "Begumpet",
+      "pincode": "500016"
+    },
+    {
+      "id": "pillar_7",
+      "name": "Metro Pillar No. 30",
+      "type": "metro_pillar",
+      "reference": "Near MG Bus Station",
+      "address": "Metro Pillar No. 30, MG Bus Station, Hyderabad, Telangana",
+      "latitude": 17.3720,
+      "longitude": 78.4755,
+      "area": "Lakdikapul",
+      "pincode": "500004"
+    },
+    {
+      "id": "pillar_8",
+      "name": "Metro Pillar No. 35",
+      "type": "metro_pillar",
+      "reference": "Near Banjara Hills Metro Station",
+      "address": "Metro Pillar No. 35, Banjara Hills, Hyderabad, Telangana",
+      "latitude": 17.4245,
+      "longitude": 78.4485,
+      "area": "Banjara Hills",
+      "pincode": "500034"
+    },
+    {
+      "id": "pillar_9",
+      "name": "Metro Pillar No. 40",
+      "type": "metro_pillar",
+      "reference": "Near Kukatpally Metro Station",
+      "address": "Metro Pillar No. 40, Kukatpally, Hyderabad, Telangana",
+      "latitude": 17.4855,
+      "longitude": 78.4010,
+      "area": "Kukatpally",
+      "pincode": "500072"
+    },
+    {
+      "id": "pillar_10",
+      "name": "Metro Pillar No. 50",
+      "type": "metro_pillar",
+      "reference": "Near LB Nagar Metro Station",
+      "address": "Metro Pillar No. 50, LB Nagar, Hyderabad, Telangana",
+      "latitude": 17.3515,
+      "longitude": 78.5580,
+      "area": "LB Nagar",
+      "pincode": "500074"
+    }
+  ]
+}
