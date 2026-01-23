@@ -238,24 +238,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         if (searchTerm.length === 0) {
-            suggestionsContainer.classList.remove('show');
-            suggestionsContainer.innerHTML = '';
-            lastSearchQuery = '';
+            // Show search history when input is empty
+            showSearchHistorySuggestions();
             return;
         }
         
-        // Show loading state immediately
-        suggestionsContainer.innerHTML = '<div class="suggestion-item no-results">🔍 Searching...</div>';
+        // Show loading state immediately with premium styling
+        suggestionsContainer.innerHTML = '<div class="suggestion-item no-results loading-state-item"><span class="loading-spinner"></span> Searching...</div>';
         suggestionsContainer.classList.add('show');
         
-        // Debounce: Wait 200ms after user stops typing before searching (reduced from 300ms)
+        // Cancel previous timeout if user is still typing
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        
+        // For single character, show history + quick suggestions immediately
+        if (searchTerm.length === 1) {
+            showQuickSuggestions(searchTerm);
+        }
+        
+        // Debounce: Wait 100ms after user stops typing before searching (optimized for faster response)
         searchTimeout = setTimeout(async () => {
             // Only search if query hasn't changed
             if (searchInput.value.trim() === searchTerm) {
                 lastSearchQuery = searchTerm;
                 await searchLocations(searchTerm);
             }
-        }, 200);
+        }, 100);
     });
     
     // Handle keyboard navigation
@@ -512,30 +521,111 @@ async function searchLocations(query) {
     const signal = currentAbortController.signal;
     
     try {
-        // Enhance query for metro searches
+        // Enhance query - make it case-insensitive and add context for restaurants/hotels
         let enhancedQuery = query;
-        if (query.toLowerCase().includes('pillar') && !query.toLowerCase().includes('metro')) {
+        const lowerQueryForEnhancement = query.toLowerCase();
+        
+        // Metro search enhancement
+        if (lowerQueryForEnhancement.includes('pillar') && !lowerQueryForEnhancement.includes('metro')) {
             enhancedQuery = `metro ${query}`;
-        } else if (query.toLowerCase().includes('metro station') || query.toLowerCase().includes('metro')) {
+        } else if (lowerQueryForEnhancement.includes('metro station') || lowerQueryForEnhancement.includes('metro')) {
             enhancedQuery = query; // Keep as is
         }
         
-        // Add "Hyderabad" to query to prioritize local results
-        const searchQuery = `${enhancedQuery}, Hyderabad, India`;
+        // Restaurant/Hotel search enhancement - ensure these are found
+        let searchQuery = enhancedQuery;
+        const lowerEnhancedQuery = enhancedQuery.toLowerCase();
         
-        // OpenStreetMap Nominatim API (free, no API key required)
-        // Format: bbox for Hyderabad area to filter results
+        // Detect business types in query (case-insensitive)
+        const isRestaurantSearch = lowerEnhancedQuery.includes('restaurant') || 
+                                  lowerEnhancedQuery.includes('dining') ||
+                                  lowerEnhancedQuery.includes('cafe') ||
+                                  lowerEnhancedQuery.includes('food') ||
+                                  lowerEnhancedQuery.includes('restaurant');
+        
+        const isHotelSearch = lowerEnhancedQuery.includes('hotel') || 
+                             lowerEnhancedQuery.includes('resort') ||
+                             lowerEnhancedQuery.includes('lodge');
+        
+        const isFamousPlaceSearch = lowerEnhancedQuery.includes('temple') ||
+                                    lowerEnhancedQuery.includes('mosque') ||
+                                    lowerEnhancedQuery.includes('church') ||
+                                    lowerEnhancedQuery.includes('monument') ||
+                                    lowerEnhancedQuery.includes('park') ||
+                                    lowerEnhancedQuery.includes('museum') ||
+                                    lowerEnhancedQuery.includes('theater') ||
+                                    lowerEnhancedQuery.includes('cinema');
+        
+        // Detect area names in query
+        const areaKeywords = ['nagar', 'colony', 'hills', 'city', 'park', 'road', 'street', 'erramanjil', 'saifabad', 'hitech', 'banjara', 'jubilee', 'secunderabad', 'begumpet', 'kondapur', 'gachibowli', 'madapur', 'kukatpally', 'miyapur', 'dilsukhnagar', 'malakpet', 'charminar', 'abids', 'koti'];
+        const hasAreaKeyword = areaKeywords.some(area => lowerEnhancedQuery.includes(area));
+        
+        // Check if it's a brand/business name search
+        const queryLength = enhancedQuery.trim().length;
+        const isBrandSearch = queryLength <= 30 && 
+                             !lowerEnhancedQuery.includes('showroom') && 
+                             !lowerEnhancedQuery.includes('mall') && 
+                             !lowerEnhancedQuery.includes('hospital') &&
+                             !isRestaurantSearch &&
+                             !isHotelSearch;
+        
+        const isSpecificSearch = queryLength > 15 || 
+                                 lowerEnhancedQuery.includes('showroom') || 
+                                 lowerEnhancedQuery.includes('mall') || 
+                                 lowerEnhancedQuery.includes('hospital') ||
+                                 isRestaurantSearch ||
+                                 isHotelSearch ||
+                                 isFamousPlaceSearch;
+        
+        // Build search query - add Hyderabad context for better results
+        // For restaurant/hotel searches, ensure they're included
+        if (!lowerEnhancedQuery.includes('hyderabad') && !lowerEnhancedQuery.includes('telangana')) {
+            // For restaurant searches, add restaurant context
+            if (isRestaurantSearch && !lowerEnhancedQuery.includes('restaurant')) {
+                searchQuery = `${enhancedQuery} restaurant, Hyderabad, Telangana, India`;
+            }
+            // For hotel searches, add hotel context
+            else if (isHotelSearch && !lowerEnhancedQuery.includes('hotel')) {
+                searchQuery = `${enhancedQuery} hotel, Hyderabad, Telangana, India`;
+            }
+            // For brand searches without area, try with location
+            else if (isBrandSearch && !hasAreaKeyword) {
+                searchQuery = `${enhancedQuery}, Hyderabad, Telangana, India`;
+            }
+            // For queries with area, add Hyderabad context
+            else if (hasAreaKeyword) {
+                searchQuery = `${enhancedQuery}, Hyderabad, Telangana, India`;
+            }
+            // For short generic queries, add location
+            else if (queryLength < 10) {
+                searchQuery = `${enhancedQuery}, Hyderabad, Telangana, India`;
+            }
+            // For specific searches (restaurants, hotels, famous places), add context
+            else if (isSpecificSearch) {
+                searchQuery = `${enhancedQuery}, Hyderabad, Telangana, India`;
+            }
+        }
+        
+        // OpenStreetMap Nominatim API - Use OpenStreetMap's native search format
+        // Trust OpenStreetMap's results - don't over-filter
         const bbox = `${HYDERABAD_BBOX.minLon},${HYDERABAD_BBOX.minLat},${HYDERABAD_BBOX.maxLon},${HYDERABAD_BBOX.maxLat}`;
         
-        const apiUrl = `https://nominatim.openstreetmap.org/search?` +
+        // Build API URL - match OpenStreetMap's search format exactly
+        // Include amenity types for restaurants, hotels, and famous places
+        let apiUrl = `https://nominatim.openstreetmap.org/search?` +
             `q=${encodeURIComponent(searchQuery)}` +
             `&format=json` +
-            `&limit=20` +
-            `&countrycodes=in` +
-            `&bounded=0` + // Changed to 0 for less strict filtering
-            `&viewbox=${bbox}` +
+            `&limit=50` + // Get more results to match OpenStreetMap
+            `&bounded=0` + // Don't strictly bound - show all matching results
+            `&viewbox=${bbox}` + // Prefer Hyderabad area but don't exclude others
             `&addressdetails=1` +
-            `&extratags=1`;
+            `&extratags=1` +
+            `&namedetails=1` +
+            `&dedupe=1` +
+            `&polygon=0`;
+        
+        // For restaurant/hotel searches, we can also search by amenity type
+        // But OpenStreetMap's q parameter already handles this well, so we keep it simple
         
         const response = await fetch(apiUrl, {
             signal: signal, // For request cancellation
@@ -562,29 +652,90 @@ async function searchLocations(query) {
         
         const data = await response.json();
         
+        // Debug logging
+        console.log('OpenStreetMap API returned', data.length, 'results for query:', searchQuery);
+        
         // Check again if query is still relevant
         const currentQueryCheck = document.getElementById('location-search').value.trim();
         if (currentQueryCheck !== query || signal.aborted) {
             return; // User typed more or request aborted, ignore results
         }
         
-        // Filter results that are actually in Hyderabad area (with some tolerance)
+        // Trust OpenStreetMap's results - include restaurants, hotels, and famous places
+        // OpenStreetMap already filters by relevance, so we trust its judgment
+        // Only filter out results that are clearly outside India
         const hyderabadResults = data.filter(place => {
             const lat = parseFloat(place.lat);
             const lon = parseFloat(place.lon);
             
-            // Check if coordinates are in Hyderabad area (with small tolerance)
-            const inBounds = lat >= HYDERABAD_BBOX.minLat - 0.05 && 
-                            lat <= HYDERABAD_BBOX.maxLat + 0.05 &&
-                            lon >= HYDERABAD_BBOX.minLon - 0.05 && 
-                            lon <= HYDERABAD_BBOX.maxLon + 0.05;
+            // Check if coordinates are valid
+            if (isNaN(lat) || isNaN(lon)) {
+                return false;
+            }
             
-            // Also check if address mentions Hyderabad
+            // Very wide bounds - accept results in a very wide area (covers all of India)
+            // This ensures we show ALL results that OpenStreetMap returns
+            const inIndiaBounds = lat >= 6.0 && lat <= 37.0 && lon >= 68.0 && lon <= 97.0;
+            
+            // Check if address mentions Hyderabad or Telangana
             const displayName = (place.display_name || '').toLowerCase();
-            const hasHyderabad = displayName.includes('hyderabad');
+            const address = (place.address || {});
+            const hasHyderabad = displayName.includes('hyderabad') || 
+                                 displayName.includes('telangana') ||
+                                 (address.city && address.city.toLowerCase().includes('hyderabad')) ||
+                                 (address.state && address.state.toLowerCase().includes('telangana'));
             
-            return inBounds || hasHyderabad;
+            // Check if it's a restaurant, hotel, or famous place (from extratags or display name)
+            const extratags = place.extratags || {};
+            const placeType = place.type || '';
+            const osmType = place.osm_type || '';
+            
+            // Restaurant detection
+            const isRestaurant = extratags.amenity === 'restaurant' || 
+                               extratags.amenity === 'fast_food' ||
+                               extratags.amenity === 'cafe' ||
+                               extratags.amenity === 'food_court' ||
+                               displayName.includes('restaurant') ||
+                               displayName.includes('cafe') ||
+                               displayName.includes('dining');
+            
+            // Hotel detection
+            const isHotel = extratags.amenity === 'hotel' ||
+                           extratags.tourism === 'hotel' ||
+                           extratags.tourism === 'resort' ||
+                           extratags.tourism === 'hostel' ||
+                           displayName.includes('hotel') ||
+                           displayName.includes('resort') ||
+                           displayName.includes('lodge');
+            
+            // Famous place detection (temples, monuments, parks, museums, etc.)
+            const isFamousPlace = extratags.tourism === 'attraction' ||
+                                 extratags.historic ||
+                                 extratags.amenity === 'place_of_worship' ||
+                                 extratags.leisure ||
+                                 extratags.amenity === 'theatre' ||
+                                 extratags.amenity === 'cinema' ||
+                                 extratags.amenity === 'museum' ||
+                                 displayName.includes('temple') ||
+                                 displayName.includes('mosque') ||
+                                 displayName.includes('church') ||
+                                 displayName.includes('monument') ||
+                                 displayName.includes('park') ||
+                                 displayName.includes('museum') ||
+                                 displayName.includes('theater') ||
+                                 displayName.includes('theatre') ||
+                                 displayName.includes('cinema');
+            
+            // Accept ALL results that are:
+            // 1. In India bounds, OR
+            // 2. Mention Hyderabad/Telangana, OR
+            // 3. Are restaurants, hotels, or famous places (even if slightly outside bounds)
+            // This ensures we show ALL relevant results including restaurants, hotels, and famous places
+            return inIndiaBounds || hasHyderabad || isRestaurant || isHotel || isFamousPlace;
         });
+        
+        // Debug logging
+        console.log('After filtering:', hyderabadResults.length, 'results remain');
         
         // Final check before displaying
         const finalQueryCheck = document.getElementById('location-search').value.trim();
@@ -593,6 +744,7 @@ async function searchLocations(query) {
         }
         
         // Convert Nominatim results to our location format
+        // Use OpenStreetMap data directly - trust what OpenStreetMap provides
         const locations = hyderabadResults.map((place, index) => {
             const lat = parseFloat(place.lat);
             const lon = parseFloat(place.lon);
@@ -601,12 +753,29 @@ async function searchLocations(query) {
             const addr = place.address || {};
             const displayName = place.display_name || place.name || 'Unknown Location';
             
-            // Build location name
-            let locationName = place.name || displayName.split(',')[0];
-            if (addr.road) {
-                locationName = addr.road;
-                if (addr.house_number) {
-                    locationName = `${addr.house_number}, ${locationName}`;
+            // Use OpenStreetMap's name directly - trust what OpenStreetMap provides
+            // Prioritize place.name, then first part of display_name, then road name
+            let locationName = '';
+            
+            // Use place.name if it exists and is meaningful
+            if (place.name && place.name.trim().length > 0) {
+                locationName = place.name.trim();
+            } 
+            // Otherwise use first part of display_name (OpenStreetMap's primary identifier)
+            else {
+                const displayParts = displayName.split(',');
+                locationName = (displayParts[0] || displayName.split(',')[0] || 'Unknown Location').trim();
+            }
+            
+            // Only use road name as last resort if we have no other name
+            if (!locationName || locationName === 'Unknown Location') {
+                if (addr.road) {
+                    locationName = addr.road;
+                    if (addr.house_number) {
+                        locationName = `${addr.house_number}, ${locationName}`;
+                    }
+                } else {
+                    locationName = displayName.split(',')[0] || 'Unknown Location';
                 }
             }
             
@@ -654,7 +823,17 @@ async function searchLocations(query) {
         // Combine metro results with API results (metro first)
         const allResults = [];
         
-        // Add metro results first (they have priority)
+        // Add search history results first (highest priority for user's previous searches)
+        const historyResults = getSearchHistorySuggestions(query);
+        if (historyResults.length > 0) {
+            historyResults.forEach(historyItem => {
+                historyItem.priority = 0; // Highest priority
+                historyItem.isHistory = true; // Mark as history item
+                allResults.push(historyItem);
+            });
+        }
+        
+        // Add metro results (they have priority)
         allResults.push(...metroResults);
         
         // Add API results (avoid duplicates with metro)
@@ -670,11 +849,11 @@ async function searchLocations(query) {
         });
         
         // Also add relevant JSON locations (if they match query)
-        const lowerQuery = query.toLowerCase();
+        const lowerQueryForJson = query.toLowerCase();
         const jsonMatches = allLocations.filter(location => {
-            const nameMatch = location.name.toLowerCase().includes(lowerQuery);
-            const addressMatch = location.address.toLowerCase().includes(lowerQuery);
-            const areaMatch = location.area.toLowerCase().includes(lowerQuery);
+            const nameMatch = location.name.toLowerCase().includes(lowerQueryForJson);
+            const addressMatch = location.address.toLowerCase().includes(lowerQueryForJson);
+            const areaMatch = location.area.toLowerCase().includes(lowerQueryForJson);
             return nameMatch || addressMatch || areaMatch;
         });
         
@@ -691,16 +870,124 @@ async function searchLocations(query) {
             }
         });
         
-        // Sort by priority and display
-        allResults.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+        // OPTIMIZED: Fast filtering and scoring - pre-compute lowercase strings once
+        const lowerQuery = query.toLowerCase().trim();
+        const queryWords = lowerQuery.split(/\s+/).filter(w => w.length > 0);
+        const queryLengthForFilter = lowerQuery.length;
+        
+        // Pre-compute search text for each result (cache lowercase strings)
+        const resultsWithSearchText = allResults.map(result => {
+            const name = result.name || '';
+            const address = result.address || '';
+            const displayName = result.displayName || '';
+            const area = result.area || '';
+            
+            // Cache lowercase versions to avoid repeated toLowerCase() calls
+            const searchText = `${name} ${address} ${displayName} ${area}`.toLowerCase();
+            
+            return {
+                ...result,
+                _searchText: searchText,
+                _lowerName: name.toLowerCase(),
+                _lowerArea: area.toLowerCase()
+            };
+        });
+        
+        // Fast filter: Only keep results that contain the query
+        const matchingResults = resultsWithSearchText.filter(result => {
+            // Quick check: if search text contains query, it's a match
+            return result._searchText.includes(lowerQuery);
+        });
+        
+        // Limit results early to improve performance (show top 30 most relevant)
+        const maxResults = 30;
+        const limitedResults = matchingResults.slice(0, maxResults * 2); // Get more for sorting, then limit
+        
+        // OPTIMIZED: Fast relevance scoring - simplified logic
+        limitedResults.forEach(result => {
+            let relevanceScore = 0;
+            const lowerName = result._lowerName;
+            const lowerArea = result._lowerArea;
+            
+            // Exact name match (highest priority)
+            if (lowerName === lowerQuery) {
+                relevanceScore = 1000;
+            } 
+            // Name starts with query
+            else if (lowerName.startsWith(lowerQuery)) {
+                relevanceScore = 500;
+            }
+            // Name contains query
+            else if (lowerName.includes(lowerQuery)) {
+                relevanceScore = 300;
+            }
+            // Area contains query (for location searches)
+            else if (lowerArea.includes(lowerQuery)) {
+                relevanceScore = 200;
+            }
+            // Search text contains query
+            else if (result._searchText.includes(lowerQuery)) {
+                relevanceScore = 100;
+            }
+            
+            result.relevanceScore = relevanceScore;
+        });
+        
+        // OPTIMIZED: Fast sorting - simplified comparison
+        limitedResults.sort((a, b) => {
+            // Priority first
+            const priorityDiff = (a.priority || 999) - (b.priority || 999);
+            if (priorityDiff !== 0) return priorityDiff;
+            
+            // Relevance score
+            const relevanceDiff = (b.relevanceScore || 0) - (a.relevanceScore || 0);
+            if (relevanceDiff !== 0) return relevanceDiff;
+            
+            // Alphabetical (use cached lowercase name)
+            return a._lowerName.localeCompare(b._lowerName);
+        });
+        
+        // Limit to top results
+        const finalResults = limitedResults.slice(0, maxResults);
         
         // Check again before displaying
         if (document.getElementById('location-search').value.trim() === query && !signal.aborted) {
-            if (allResults.length === 0) {
-                suggestionsContainer.innerHTML = '<div class="suggestion-item no-results">No locations found. Try a different search term.</div>';
-                suggestionsContainer.classList.add('show');
+            if (finalResults.length === 0) {
+                console.log('No results found, trying fallback...');
+                // Try fallback search strategies
+                let shouldTryFallback = false;
+                let fallbackQuery = enhancedQuery;
+                
+                // If we added location context and got no results, try without location
+                if (searchQuery !== enhancedQuery) {
+                    shouldTryFallback = true;
+                    fallbackQuery = enhancedQuery;
+                }
+                // If it's a brand/business name search, try with location context
+                else if (isBrandSearch) {
+                    shouldTryFallback = true;
+                    // If query already has area keyword, keep it; otherwise add Hyderabad
+                    if (hasAreaKeyword) {
+                        fallbackQuery = `${enhancedQuery}, Hyderabad, Telangana, India`;
+                    } else {
+                        fallbackQuery = `${enhancedQuery}, Hyderabad, Telangana, India`;
+                    }
+                }
+                // If it's a specific search, try without location
+                else if (isSpecificSearch) {
+                    shouldTryFallback = true;
+                    fallbackQuery = enhancedQuery;
+                }
+                
+                if (shouldTryFallback) {
+                    console.log('Trying fallback search with query:', fallbackQuery);
+                    await performFallbackSearch(fallbackQuery, query, signal);
+                } else {
+                    suggestionsContainer.innerHTML = '<div class="suggestion-item no-results">No locations found. Try a different search term.</div>';
+                    suggestionsContainer.classList.add('show');
+                }
             } else {
-                displaySuggestions(allResults);
+                displaySuggestions(matchingResults);
             }
         }
         
@@ -718,38 +1005,183 @@ async function searchLocations(query) {
             return; // User typed more, ignore error handling
         }
         
-        // Combine metro results with fallback JSON locations if API fails
-        const allFallbackResults = [...metroResults];
+        // Try fallback search on error
+        if (currentQuery === query && !signal.aborted) {
+            await performFallbackSearch(query, query, signal);
+        }
+    } finally {
+        // Clear abort controller after request completes
+        if (currentAbortController && currentAbortController.signal.aborted === false) {
+            currentAbortController = null;
+        }
+    }
+}
+
+// Fallback search function - tries alternative search strategies
+async function performFallbackSearch(searchQuery, originalQuery, signal) {
+    const suggestionsContainer = document.getElementById('suggestions');
+    
+    // Check if query is still relevant
+    const currentQuery = document.getElementById('location-search').value.trim();
+    if (currentQuery !== originalQuery || signal.aborted) {
+        return;
+    }
+    
+    try {
+        // Try search without location context - just the raw query
+        const fallbackUrl = `https://nominatim.openstreetmap.org/search?` +
+            `q=${encodeURIComponent(searchQuery)}` +
+            `&format=json` +
+            `&limit=30` +
+            `&addressdetails=1` +
+            `&extratags=1` +
+            `&namedetails=1` +
+            `&dedupe=1` +
+            `&polygon=0`;
         
-        // Add JSON locations
-        const lowerQuery = query.toLowerCase();
-        const jsonMatches = allLocations.filter(location => {
-            const nameMatch = location.name.toLowerCase().includes(lowerQuery);
-            const addressMatch = location.address.toLowerCase().includes(lowerQuery);
-            const areaMatch = location.area.toLowerCase().includes(lowerQuery);
-            return nameMatch || addressMatch || areaMatch;
+        const response = await fetch(fallbackUrl, {
+            signal: signal,
+            headers: {
+                'User-Agent': 'Hyderabad Location Search App',
+                'Accept-Language': 'en'
+            }
         });
-        jsonMatches.forEach(loc => {
-            loc.priority = 10;
-            allFallbackResults.push(loc);
+        
+        if (signal.aborted || document.getElementById('location-search').value.trim() !== originalQuery) {
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error('Fallback API request failed');
+        }
+        
+        const data = await response.json();
+        
+        // Filter for Hyderabad area (very lenient for fallback searches)
+        const hyderabadResults = data.filter(place => {
+            const lat = parseFloat(place.lat);
+            const lon = parseFloat(place.lon);
+            const displayName = (place.display_name || '').toLowerCase();
+            const address = (place.address || {});
+            
+            // Very lenient bounds check (wider area)
+            const inWideBounds = lat >= 16.5 && lat <= 18.5 && lon >= 77.5 && lon <= 79.5;
+            
+            // Check if mentions Hyderabad or Telangana
+            const hasHyderabad = displayName.includes('hyderabad') ||
+                                displayName.includes('telangana') ||
+                                (address.city && address.city.toLowerCase().includes('hyderabad')) ||
+                                (address.state && address.state.toLowerCase().includes('telangana'));
+            
+            // For fallback, be very lenient - accept if in wide bounds OR mentions location
+            // This ensures we don't miss valid results
+            return inWideBounds || hasHyderabad || (lat >= 17 && lat <= 18 && lon >= 78 && lon <= 79);
         });
         
-        // Sort by priority
-        allFallbackResults.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+        if (signal.aborted || document.getElementById('location-search').value.trim() !== originalQuery) {
+            return;
+        }
         
-        // Final check before displaying error/fallback
-        if (document.getElementById('location-search').value.trim() === query) {
+        // Convert to location format
+        const locations = hyderabadResults.map((place, index) => {
+            const lat = parseFloat(place.lat);
+            const lon = parseFloat(place.lon);
+            const addr = place.address || {};
+            const displayName = place.display_name || place.name || 'Unknown Location';
+            
+            // Use OpenStreetMap's name directly - trust what OpenStreetMap provides
+            // Prioritize place.name, then first part of display_name, then road name
+            let locationName = '';
+            
+            // Use place.name if it exists and is meaningful
+            if (place.name && place.name.trim().length > 0) {
+                locationName = place.name.trim();
+            } 
+            // Otherwise use first part of display_name (OpenStreetMap's primary identifier)
+            else {
+                const displayParts = displayName.split(',');
+                locationName = (displayParts[0] || displayName.split(',')[0] || 'Unknown Location').trim();
+            }
+            
+            // Only use road name as last resort if we have no other name
+            if (!locationName || locationName === 'Unknown Location') {
+                if (addr.road) {
+                    locationName = addr.road;
+                    if (addr.house_number) {
+                        locationName = `${addr.house_number}, ${locationName}`;
+                    }
+                } else {
+                    locationName = displayName.split(',')[0] || 'Unknown Location';
+                }
+            }
+            
+            const area = addr.suburb || addr.neighbourhood || addr.city_district || addr.city || 'Hyderabad';
+            const pincode = addr.postcode || '';
+            
+            const addressParts = [];
+            if (addr.house_number) addressParts.push(addr.house_number);
+            if (addr.road) addressParts.push(addr.road);
+            if (addr.suburb) addressParts.push(addr.suburb);
+            if (addr.city_district) addressParts.push(addr.city_district);
+            addressParts.push('Hyderabad', 'Telangana');
+            const fullAddress = addressParts.join(', ');
+            
+            return {
+                id: `fallback_${index}`,
+                name: locationName,
+                address: fullAddress || displayName,
+                latitude: lat,
+                longitude: lon,
+                latitudeRange: { min: lat - 0.01, max: lat + 0.01 },
+                longitudeRange: { min: lon - 0.01, max: lon + 0.01 },
+                area: area,
+                pincode: pincode,
+                displayName: displayName,
+                priority: 20 // Lower priority than main search
+            };
+        });
+        
+        // Combine with metro results
+        const metroResults = searchMetroData(originalQuery);
+        const allResults = [...metroResults, ...locations];
+        
+        // Final check
+        if (document.getElementById('location-search').value.trim() === originalQuery && !signal.aborted) {
+            if (allResults.length === 0) {
+                suggestionsContainer.innerHTML = '<div class="suggestion-item no-results">No locations found. Try a different search term.</div>';
+                suggestionsContainer.classList.add('show');
+            } else {
+                displaySuggestions(allResults);
+            }
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            return;
+        }
+        
+        console.error('Fallback search error:', error);
+        
+        // Final fallback - show JSON matches
+        const currentQuery = document.getElementById('location-search').value.trim();
+        if (currentQuery === originalQuery && !signal.aborted) {
+            const metroResults = searchMetroData(originalQuery);
+            const lowerQuery = originalQuery.toLowerCase();
+            const jsonMatches = allLocations.filter(location => {
+                const nameMatch = location.name.toLowerCase().includes(lowerQuery);
+                const addressMatch = location.address.toLowerCase().includes(lowerQuery);
+                const areaMatch = location.area.toLowerCase().includes(lowerQuery);
+                return nameMatch || addressMatch || areaMatch;
+            });
+            
+            const allFallbackResults = [...metroResults, ...jsonMatches];
+            allFallbackResults.sort((a, b) => (a.priority || 999) - (b.priority || 999));
+            
             if (allFallbackResults.length === 0) {
                 suggestionsContainer.innerHTML = '<div class="suggestion-item no-results">No locations found. Try a different search term.</div>';
                 suggestionsContainer.classList.add('show');
             } else {
                 displaySuggestions(allFallbackResults);
             }
-        }
-    } finally {
-        // Clear abort controller after request completes
-        if (currentAbortController && currentAbortController.signal.aborted === false) {
-            currentAbortController = null;
         }
     }
 }
@@ -784,7 +1216,14 @@ function displaySuggestions(locations) {
         let title = location.name || 'Unknown Location';
         let description = '';
         
-        if (location.type === 'metro_station') {
+        // Check if it's a history item
+        if (location.isHistory) {
+            icon = '🕒'; // History icon
+            description = location.area ? 
+                `${location.area}${location.pincode ? ' • ' + location.pincode : ''}` : 
+                (location.address ? location.address.split(',').slice(0, 2).join(', ') : 'Hyderabad');
+            suggestionItem.classList.add('history-suggestion');
+        } else if (location.type === 'metro_station') {
             icon = '🚇'; // Metro station icon
             description = location.line ? `${location.area} • ${location.line}` : location.area || location.address;
         } else if (location.type === 'metro_pillar') {
@@ -798,7 +1237,7 @@ function displaySuggestions(locations) {
         }
         
         // Store location data
-        if (!location.id || location.id.toString().startsWith('nom_') || location.id.toString().startsWith('metro_') || location.id.toString().startsWith('pillar_')) {
+        if (!location.id || location.id.toString().startsWith('nom_') || location.id.toString().startsWith('metro_') || location.id.toString().startsWith('pillar_') || location.id.toString().startsWith('history_')) {
             suggestionItem.dataset.locationData = JSON.stringify(location);
         }
         
@@ -1963,4 +2402,286 @@ function showSuccess(message) {
             successDiv.parentNode.removeChild(successDiv);
         }
     }, 5000);
+}
+
+// Get search history suggestions that match the query
+function getSearchHistorySuggestions(query) {
+    try {
+        const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        if (!history || history.length === 0) {
+            return [];
+        }
+        
+        const lowerQuery = query.toLowerCase().trim();
+        if (lowerQuery.length === 0) {
+            // Return recent searches if query is empty
+            return history.slice(0, 10).map(item => ({
+                id: `history_${item.id}`,
+                name: item.locationName || item.name,
+                address: item.address,
+                latitude: item.latitude,
+                longitude: item.longitude,
+                latitudeRange: item.latitudeRange,
+                longitudeRange: item.longitudeRange,
+                area: item.area,
+                pincode: item.pincode,
+                displayName: item.address,
+                isHistory: true,
+                timestamp: item.timestamp
+            }));
+        }
+        
+        // Filter history by query match
+        const matchingHistory = history.filter(item => {
+            const name = (item.locationName || item.name || '').toLowerCase();
+            const address = (item.address || '').toLowerCase();
+            const area = (item.area || '').toLowerCase();
+            
+            return name.includes(lowerQuery) || 
+                   address.includes(lowerQuery) || 
+                   area.includes(lowerQuery);
+        });
+        
+        // Return top 5 matching history items
+        return matchingHistory.slice(0, 5).map(item => ({
+            id: `history_${item.id}`,
+            name: item.locationName || item.name,
+            address: item.address,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            latitudeRange: item.latitudeRange,
+            longitudeRange: item.longitudeRange,
+            area: item.area,
+            pincode: item.pincode,
+            displayName: item.address,
+            isHistory: true,
+            timestamp: item.timestamp
+        }));
+    } catch (error) {
+        console.error('Error getting search history suggestions:', error);
+        return [];
+    }
+}
+
+// Show search history in suggestions dropdown
+function showSearchHistorySuggestions() {
+    const suggestionsContainer = document.getElementById('suggestions');
+    const history = getSearchHistorySuggestions('');
+    
+    if (history.length === 0) {
+        suggestionsContainer.classList.remove('show');
+        suggestionsContainer.innerHTML = '';
+        return;
+    }
+    
+    suggestionsContainer.innerHTML = '';
+    
+    // Add "Recent Searches" header
+    const headerItem = document.createElement('div');
+    headerItem.className = 'suggestion-header';
+    headerItem.innerHTML = '<span style="font-weight: 600; color: #667eea; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">🕒 Recent Searches</span>';
+    suggestionsContainer.appendChild(headerItem);
+    
+    history.forEach((item, index) => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item history-suggestion';
+        suggestionItem.dataset.locationData = JSON.stringify(item);
+        
+        suggestionItem.innerHTML = `
+            <span class="suggestion-icon">🕒</span>
+            <div class="suggestion-text">
+                <div class="suggestion-title">${item.name}</div>
+                <div class="suggestion-description">${item.area || item.address || 'Hyderabad'}</div>
+            </div>
+        `;
+        
+        suggestionItem.addEventListener('click', function() {
+            handleLocationSelect(item);
+        });
+        
+        suggestionsContainer.appendChild(suggestionItem);
+    });
+    
+    suggestionsContainer.classList.add('show');
+}
+
+// Show quick suggestions for single character
+function showQuickSuggestions(query) {
+    const suggestionsContainer = document.getElementById('suggestions');
+    const lowerQuery = query.toLowerCase();
+    
+    // Get history matches
+    const historyResults = getSearchHistorySuggestions(query);
+    
+    // Get quick matches from local data (metro, JSON)
+    const quickResults = [];
+    
+    // Metro stations starting with the character
+    metroStations.forEach(station => {
+        if (station.name.toLowerCase().startsWith(lowerQuery)) {
+            quickResults.push({
+                ...station,
+                priority: 1,
+                type: 'metro_station'
+            });
+        }
+    });
+    
+    // JSON locations starting with the character
+    allLocations.forEach(location => {
+        if (location.name.toLowerCase().startsWith(lowerQuery)) {
+            quickResults.push({
+                ...location,
+                priority: 2
+            });
+        }
+    });
+    
+    // Combine and limit
+    const allQuickResults = [...historyResults, ...quickResults].slice(0, 10);
+    
+    if (allQuickResults.length > 0) {
+        displaySuggestions(allQuickResults);
+    }
+}
+
+// Get search history suggestions that match the query
+function getSearchHistorySuggestions(query) {
+    try {
+        const history = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        if (!history || history.length === 0) {
+            return [];
+        }
+        
+        const lowerQuery = query.toLowerCase().trim();
+        if (lowerQuery.length === 0) {
+            // Return recent searches if query is empty
+            return history.slice(0, 10).map(item => ({
+                id: `history_${item.id}`,
+                name: item.locationName || item.name,
+                address: item.address,
+                latitude: item.latitude,
+                longitude: item.longitude,
+                latitudeRange: item.latitudeRange,
+                longitudeRange: item.longitudeRange,
+                area: item.area,
+                pincode: item.pincode,
+                displayName: item.address,
+                isHistory: true,
+                timestamp: item.timestamp
+            }));
+        }
+        
+        // Filter history by query match
+        const matchingHistory = history.filter(item => {
+            const name = (item.locationName || item.name || '').toLowerCase();
+            const address = (item.address || '').toLowerCase();
+            const area = (item.area || '').toLowerCase();
+            
+            return name.includes(lowerQuery) || 
+                   address.includes(lowerQuery) || 
+                   area.includes(lowerQuery);
+        });
+        
+        // Return top 5 matching history items
+        return matchingHistory.slice(0, 5).map(item => ({
+            id: `history_${item.id}`,
+            name: item.locationName || item.name,
+            address: item.address,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            latitudeRange: item.latitudeRange,
+            longitudeRange: item.longitudeRange,
+            area: item.area,
+            pincode: item.pincode,
+            displayName: item.address,
+            isHistory: true,
+            timestamp: item.timestamp
+        }));
+    } catch (error) {
+        console.error('Error getting search history suggestions:', error);
+        return [];
+    }
+}
+
+// Show search history in suggestions dropdown
+function showSearchHistorySuggestions() {
+    const suggestionsContainer = document.getElementById('suggestions');
+    const history = getSearchHistorySuggestions('');
+    
+    if (history.length === 0) {
+        suggestionsContainer.classList.remove('show');
+        suggestionsContainer.innerHTML = '';
+        return;
+    }
+    
+    suggestionsContainer.innerHTML = '';
+    
+    // Add "Recent Searches" header
+    const headerItem = document.createElement('div');
+    headerItem.className = 'suggestion-header';
+    headerItem.innerHTML = '<span style="font-weight: 600; color: #667eea; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">🕒 Recent Searches</span>';
+    suggestionsContainer.appendChild(headerItem);
+    
+    history.forEach((item, index) => {
+        const suggestionItem = document.createElement('div');
+        suggestionItem.className = 'suggestion-item history-suggestion';
+        suggestionItem.dataset.locationData = JSON.stringify(item);
+        
+        suggestionItem.innerHTML = `
+            <span class="suggestion-icon">🕒</span>
+            <div class="suggestion-text">
+                <div class="suggestion-title">${item.name}</div>
+                <div class="suggestion-description">${item.area || item.address || 'Hyderabad'}</div>
+            </div>
+        `;
+        
+        suggestionItem.addEventListener('click', function() {
+            handleLocationSelect(item);
+        });
+        
+        suggestionsContainer.appendChild(suggestionItem);
+    });
+    
+    suggestionsContainer.classList.add('show');
+}
+
+// Show quick suggestions for single character
+function showQuickSuggestions(query) {
+    const suggestionsContainer = document.getElementById('suggestions');
+    const lowerQuery = query.toLowerCase();
+    
+    // Get history matches
+    const historyResults = getSearchHistorySuggestions(query);
+    
+    // Get quick matches from local data (metro, JSON)
+    const quickResults = [];
+    
+    // Metro stations starting with the character
+    metroStations.forEach(station => {
+        if (station.name.toLowerCase().startsWith(lowerQuery)) {
+            quickResults.push({
+                ...station,
+                priority: 1,
+                type: 'metro_station'
+            });
+        }
+    });
+    
+    // JSON locations starting with the character
+    allLocations.forEach(location => {
+        if (location.name.toLowerCase().startsWith(lowerQuery)) {
+            quickResults.push({
+                ...location,
+                priority: 2
+            });
+        }
+    });
+    
+    // Combine and limit
+    const allQuickResults = [...historyResults, ...quickResults].slice(0, 10);
+    
+    if (allQuickResults.length > 0) {
+        displaySuggestions(allQuickResults);
+    }
 }
